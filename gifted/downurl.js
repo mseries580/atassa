@@ -4,29 +4,27 @@ let handler = async (m, { conn, text }) => {
   if (!text) return m.reply('Link do bhai')
 
   try {
-    let res = await axios.get(text, {
-      responseType: 'arraybuffer',
+    let response = await axios({
+      method: "GET",
+      url: text,
+      responseType: "stream",
       headers: {
-        'User-Agent': 'Mozilla/5.0'
+        "User-Agent": "Mozilla/5.0",
+        "Accept": "*/*"
       }
     })
 
-    await conn.sendFile(
-      m.chat,
-      res.data,
-      'file',
-      'Download ho gaya ✅',
-      m
-    )
+    let filename = text.split('/').pop().split('?')[0]
+
+    await conn.sendMessage(m.chat, {
+      document: { url: text },
+      fileName: filename || "file",
+      mimetype: "application/octet-stream"
+    }, { quoted: m })
 
   } catch (e) {
     console.log(e)
-
-    if (e.response) {
-      m.reply(`Error ${e.response.status} aya 😢`)
-    } else {
-      m.reply('Download fail ho gaya 😢')
-    }
+    m.reply('Download fail ❌\nLink direct nahi hai ya server block kar raha hai')
   }
 }
 
